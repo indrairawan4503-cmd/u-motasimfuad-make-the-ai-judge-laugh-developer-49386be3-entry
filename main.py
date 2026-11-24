@@ -41,25 +41,31 @@ LINE = "The tests passed, so I shipped the bug to production and now it reviews 
 #     is the strongest version of this concept.
 
 
-def main() -> int:
-    if not (1 <= len(LINE) <= 200):
-        print(f"error: line is {len(LINE)} chars, must be 1-200", file=sys.stderr)
-        return 1
-    if LINE != LINE.strip() or "\n" in LINE or "\r" in LINE:
+def validate(line: str) -> str:
+    if not (1 <= len(line) <= 200):
+        print(f"error: line is {len(line)} chars, must be 1-200", file=sys.stderr)
+        raise SystemExit(1)
+    if line != line.strip() or "\n" in line or "\r" in line:
         print("error: line must be a single line with no surrounding whitespace",
               file=sys.stderr)
-        return 1
-    if "  " in LINE:
+        raise SystemExit(1)
+    if "  " in line:
         print("error: double space in line", file=sys.stderr)
-        return 1
-    if not LINE.endswith("."):
+        raise SystemExit(1)
+    if not line.endswith("."):
         print("error: line must end with a full stop", file=sys.stderr)
-        return 1
+        raise SystemExit(1)
     try:
-        data = LINE.encode("utf-8")
+        line.encode("utf-8")
     except UnicodeEncodeError as exc:
         print(f"error: line is not valid UTF-8: {exc}", file=sys.stderr)
-        return 1
+        raise SystemExit(1)
+    return line
+
+
+def main() -> int:
+    line = validate(LINE)
+    data = line.encode("utf-8")
     os.makedirs("/output", exist_ok=True)
     with open("/output/entry.txt", "wb") as fh:
         fh.write(data)
